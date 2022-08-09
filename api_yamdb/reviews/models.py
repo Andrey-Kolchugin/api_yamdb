@@ -46,10 +46,6 @@ class User(AbstractUser):
         ordering = ['id']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-from django.contrib.auth import get_user_model
-from django.db import models
-
-User = get_user_model()
 
 
 class Category(models.Model):
