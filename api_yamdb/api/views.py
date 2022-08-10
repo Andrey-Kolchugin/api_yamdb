@@ -74,8 +74,8 @@ class SignUp(APIView):
         send_mail(
             'Код подтверждения',
             confirmation_code,
-            settings.EMAIL_HOST_USER,
-            [email]
+            from_email=None,
+            recipient_list=[user.email]
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
