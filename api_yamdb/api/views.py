@@ -46,6 +46,8 @@ class SignUp(APIView):
 
 
 class ObtainToken(APIView):
+    
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         username = request.data.get('username')
