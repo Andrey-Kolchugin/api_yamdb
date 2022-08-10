@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import TitleViewSet, CategoryViewSet, GenreViewSet, ReviewsViewSet
@@ -17,5 +16,4 @@ urlpatterns = [
     path('v1/', include(v1_router.urls)),
     path('v1/auth/signup/', views.SignUp.as_view()),
     path('v1/auth/token/', views.ObtainToken.as_view()),
->>>>>>> origin/ivan
 ]
