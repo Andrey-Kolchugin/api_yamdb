@@ -6,7 +6,7 @@ from .models import Title, Genre, Category
 class TitleAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'name', 'year', 'rating', 'description',
-        'category', 'genre'
+        'category',
     )
     search_fields = ('name',)
     list_filter = ('year',)

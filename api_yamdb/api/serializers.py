@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.serializers import CurrentUserDefault
-from posts.models import Category, Genre, Title, User, Comment
+from reviews.models import Category, Genre, Title, User, Comment, Review
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -32,4 +32,15 @@ class GenreSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
+        fields = '__all__'
+
+class ReviewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
         fields = '__all__'
