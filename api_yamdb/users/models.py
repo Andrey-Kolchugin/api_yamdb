@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
+from .validators import username_value_not_me
 
 ADMIN = 'admin'
 MODERATOR = 'moderator'
@@ -13,7 +15,9 @@ ROLES = [
 
 
 class User(AbstractUser):
-      
+
+    username_validator = UnicodeUsernameValidator()
+
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
         unique=True,
@@ -21,8 +25,11 @@ class User(AbstractUser):
     username = models.CharField(
         verbose_name='Имя пользователя',
         max_length=150,
-        null=True,
         unique=True,
+        validators=[username_validator, username_value_not_me],
+        error_messages={
+            "unique": "A user with that username already exists.",
+        },
     )
     role = models.CharField(
         verbose_name='Роль',
@@ -35,9 +42,14 @@ class User(AbstractUser):
         null=True,
         blank=True
     )
-    confirmation_code = models.TextField(
-        'confirmation code',
-        blank=True
+    # confirmation_code = models.TextField(
+    #     verbose_name='confirmation code',
+    #     blank=True
+    # )
+    confirmation_code = models.CharField(
+        verbose_name='код подтверждения',
+        max_length=255,
+        blank=False,
     )
 
     @property
