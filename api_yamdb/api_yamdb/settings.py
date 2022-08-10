@@ -128,8 +128,8 @@ SIMPLE_JWT = {
 
 EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_PORT = 465
-EMAIL_HOST_USER = "storm47practicum@yandex.ru"
-EMAIL_HOST_PASSWORD = "ncppzjzctacyzmhc"
+EMAIL_HOST_USER = os.getenv('MailLogin', default='storm47practicum@yandex.ru')
+EMAIL_HOST_PASSWORD = os.getenv('MailPass', default='ncppzjzctacyzmhc')
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 
