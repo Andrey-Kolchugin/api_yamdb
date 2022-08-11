@@ -1,5 +1,5 @@
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from reviews.models import Title, Category, Genre
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
+from reviews.models import Title, Category, Genre, Review, Comment
 from rest_framework import viewsets
 from .permissions import IsAdminOrReadOnly
 from .serializers import TitleSerializer, CategorySerializer, GenreSerializer, ReviewsSerializer, CommentSerializer
@@ -42,12 +42,19 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
-    def get_queryset(self):
-        review = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        return post.comments.all()
     serializer_class = ReviewsSerializer
-    pagination_class = PageNumberPagination
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [AllowAny]
+    def get_queryset(self):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return title.reviews.all()
+
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
+
+    #pagination_class = PageNumberPagination
+
 
 
 
@@ -140,3 +147,15 @@ class AdminUserViewSet(viewsets.ModelViewSet):
             "You are not allowed to delete other's accounts",
             status=status.HTTP_403_FORBIDDEN
         )
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    #permission_classes = (IsAuthor,)
+
+    def get_queryset(self):
+        review = get_object_or_404(Review, id=self.kwargs.get('post_id'))
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        serializer.save(author=self.request.user, review=review)
