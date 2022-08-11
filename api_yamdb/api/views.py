@@ -1,5 +1,5 @@
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
-from reviews.models import Title, Category, Genre, Review, Comment
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from reviews.models import Title, Category, Genre
 from rest_framework import viewsets
 from .permissions import IsAdminOrReadOnly
 from .serializers import TitleSerializer, CategorySerializer, GenreSerializer, ReviewsSerializer, CommentSerializer
@@ -25,6 +25,9 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
     pagination_class = PageNumberPagination
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -32,6 +35,15 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+    ordering_fields = ('name',)
+    ordering = ('name',)
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'partial_update'):
+            return TitleCreateSerializer
+        return TitleSerializer
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
@@ -42,19 +54,12 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewsSerializer
-    permission_classes = [AllowAny]
     def get_queryset(self):
-        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        return title.reviews.all()
-
-
-    def perform_create(self, serializer):
-        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user, title=title)
-
-    #pagination_class = PageNumberPagination
-
+        review = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return post.comments.all()
+    serializer_class = ReviewsSerializer
+    pagination_class = PageNumberPagination
+    permission_classes = [IsAdminOrReadOnly]
 
 
 
