@@ -1,47 +1,53 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from .validators import year_validation
 from users.models import User
 
 class Category(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
+    id = models.AutoField(primary_key=True, editable=False)
+    name = models.CharField(max_length=256, db_index=True,
+                                help_text='Название категории')
+    slug = models.SlugField(max_length=256, unique=True,
+                            help_text='Уникальный URL категории.')
 
+    class Meta:
+        ordering = ('name',)
     def __str__(self):
         return self.name
+
 
 class Genre(models.Model):
-    name = models.CharField(max_length=200)
+    id = models.AutoField(primary_key=True, editable=False)
+    name = models.CharField(max_length=256, db_index=True,
+                            help_text='Название жанра')
     slug = models.SlugField(unique=True)
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
 
-class Title(models.Model):
-    name = models.CharField(max_length=200)
-    year = models.DateTimeField(default=0, null=True, blank=True)
 
-    category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL,
-        related_name='category', blank=True, null=True
-    )
-    description = models.TextField(max_length=1000, help_text='Краткое описание')
-    rating = models.IntegerField(default=0, null=True, blank=True)
-    genre = models.ManyToManyField(Genre, through='GenreTitle')
-  #  genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, related_name='genre', null=True)
+class Title(models.Model):
+    id = models.AutoField(primary_key=True, editable=False)
+    name = models.CharField(max_length=256, db_index=True)
+    year = models.PositiveSmallIntegerField(validators=[year_validation],
+                                            help_text='Год выхода')
+    description = models.TextField(null=True, blank=True)
+    category = models.ForeignKey(Category,
+                                 on_delete=models.SET_NULL,
+                                 related_name="titles", blank=True, null=True)
+    genre = models.ManyToManyField(Genre,
+                                   related_name="titles", blank=True)
+    rating = models.IntegerField(null=True, default=None)
+
+    class Meta:
+        ordering = ('-year',)
 
     def __str__(self):
-        return (
-            'Заголовок {}, категория {}, жанр {}'.format(
-                self.name, self.category, self.genre
-            )
-        )
+        return self.name
 
-class GenreTitle(models.Model):
-        genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-        title = models.ForeignKey(Title, on_delete=models.CASCADE)
-
-        def __str__(self):
-            return f'{self.genre} {self.title}'   
 
 class Review(models.Model):
     title = models.ForeignKey(

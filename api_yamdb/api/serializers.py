@@ -2,37 +2,56 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.serializers import CurrentUserDefault
+from django.db.models import Avg
 from reviews.models import Category, Genre, Title, User, Comment, Review
 from users.models import User
 
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
-    )
-
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        fields = '__all__'
-        model = Comment
-
-
-class TitleSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, required=False)
-
-    class Meta:
-        fields = '__all__'
-        model = Title
+        model = Category
+        fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
-        fields = '__all__'
+        fields = ('name', 'slug')
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class TitleSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
+    rating = serializers.SerializerMethodField()
+
     class Meta:
-        model = Category
-        fields = '__all__'
+        model = Title
+        fields = ('id', 'name', 'year', 'description',
+                  'genre', 'category', 'rating')
+        read_only_fields = ('id',)
+
+    def get_rating(self, obj):
+        try:
+            rating = obj.reviews.aggregate(Avg('score'))
+            return rating.get('score__avg')
+        except TypeError:
+            return None
+
+
+class TitleCreateSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+        many=True
+    )
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'description',
+                  'genre', 'category', 'rating')
+        model = Title
 
 class ReviewsSerializer(serializers.ModelSerializer):
     class Meta:
