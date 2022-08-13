@@ -1,17 +1,20 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from .validators import year_validation
 from users.models import User
+
+from .validators import year_validation
+
 
 class Category(models.Model):
     id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=256, db_index=True,
-                                help_text='Название категории')
+                            help_text='Название категории')
     slug = models.SlugField(max_length=256, unique=True,
                             help_text='Уникальный URL категории.')
 
     class Meta:
         ordering = ('name',)
+
     def __str__(self):
         return self.name
 
@@ -56,8 +59,9 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='Произведение'
     )
-    text = models.CharField(
-        max_length=500
+    text = models.TextField(
+        max_length=500,
+        verbose_name='Отзыв'
     )
     author = models.ForeignKey(
         User,

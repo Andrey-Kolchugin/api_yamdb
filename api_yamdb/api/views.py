@@ -1,32 +1,36 @@
-from rest_framework.permissions import IsAuthenticated
-from reviews.models import Title, Category, Genre
-from rest_framework import viewsets
-from .permissions import IsAdminOrReadOnly
-from .serializers import TitleSerializer, CategorySerializer, GenreSerializer, ReviewsSerializer, TitleCreateSerializer
-from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
-                                   ListModelMixin)
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   ListModelMixin)
 from rest_framework.pagination import PageNumberPagination
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from reviews.filters import TitleFilter
+from reviews.models import Category, Genre, Review, Title
 from users.models import User
 from users.permissions import UserPermissions
-from reviews.filters import TitleFilter
 
-from .serializers import (ObtainTokenSerializer, SafeUserSerializer,
-                          SignUpSerializer, UserSerializer)
+from .permissions import AuthorModerAdmin, IsAdminOrReadOnly
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ObtainTokenSerializer,
+                          ReviewsSerializer, SafeUserSerializer,
+                          SignUpSerializer, TitleCreateSerializer,
+                          TitleSerializer, UserSerializer)
 
 
-class ListCreateDestroyMixin(ListModelMixin, CreateModelMixin, DestroyModelMixin,
-                  viewsets.GenericViewSet):
+class ListCreateDestroyMixin(ListModelMixin, CreateModelMixin,
+                             DestroyModelMixin,
+                             viewsets.GenericViewSet
+                             ):
     pass
+
 
 class CategoryViewSet(ListCreateDestroyMixin):
     queryset = Category.objects.all()
@@ -63,15 +67,36 @@ class GenreViewSet(ListCreateDestroyMixin):
     search_fields = ('name',)
     lookup_field = 'slug'
 
+
 class ReviewsViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewsSerializer
+    permission_classes = [AuthorModerAdmin, ]
+
     def get_queryset(self):
         review = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return review.reviews.all()
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [AuthorModerAdmin, ]
+
+    def get_queryset(self):
+        review = get_object_or_404(
+            Review,
+            id=self.kwargs.get('review_id')
+        )
         return review.comments.all()
-    serializer_class = ReviewsSerializer
-    pagination_class = PageNumberPagination
-    permission_classes = [IsAdminOrReadOnly]
 
-
+    def perform_create(self, serializer):
+        review = get_object_or_404(
+            Review,
+            id=self.kwargs.get('review_id'))
+        serializer.save(author=self.request.user, review=review)
 
 
 class SignUp(APIView):

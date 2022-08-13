@@ -1,10 +1,10 @@
-from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator
-from rest_framework.serializers import CurrentUserDefault
 from django.db.models import Avg
-from reviews.models import Category, Genre, Title, User, Comment, Review
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -53,13 +53,49 @@ class TitleCreateSerializer(serializers.ModelSerializer):
                   'genre', 'category', 'rating')
         model = Title
 
+
 class ReviewsSerializer(serializers.ModelSerializer):
+    title = serializers.SlugRelatedField(
+        slug_field='name',
+        read_only=True
+    )
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+
+    def validate_value(self, value):
+        if 0 > value > 10:
+            raise ValidationError('Оценка от 1 до 10')
+        return value
+
+    def validate(self, data):
+        request = self.context['request']
+        author = request.user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        if (
+                request.method == 'POST'
+                and Review.objects.filter(title=title, author=author).exists()
+        ):
+            raise ValidationError('Возможно оставить только один отзыв')
+        return data
+
     class Meta:
         model = Review
         fields = '__all__'
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    review = serializers.SlugRelatedField(
+        slug_field='text',
+        read_only=True
+    )
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+
     class Meta:
         model = Comment
         fields = '__all__'
@@ -114,4 +150,3 @@ class ObtainTokenSerializer(serializers.ModelSerializer):
                 "username can't be blank"
             )
         return value
-
