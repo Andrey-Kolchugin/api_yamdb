@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -51,7 +50,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = TitleFilter
     ordering_fields = ('name',)
     ordering = ('name',)
-    
+
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):
             return TitleCreateSerializer
