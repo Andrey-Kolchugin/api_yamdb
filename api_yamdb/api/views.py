@@ -82,7 +82,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [AuthorModerAdmin, ]
+    permission_classes = [AuthorModerAdmin]
 
     def get_queryset(self):
         review = get_object_or_404(

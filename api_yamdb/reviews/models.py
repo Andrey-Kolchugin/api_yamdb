@@ -61,7 +61,8 @@ class Review(models.Model):
     )
     text = models.TextField(
         max_length=500,
-        verbose_name='Отзыв'
+        verbose_name='Отзыв',
+        help_text='Текст отзыва'
     )
     author = models.ForeignKey(
         User,
@@ -73,8 +74,8 @@ class Review(models.Model):
     score = models.IntegerField(
         'Оценка',
         validators=(
-            MinValueValidator(1),
-            MaxValueValidator(10)
+            MinValueValidator(1, message='Значение должно быть от 1 до 10'),
+            MaxValueValidator(10, message='Значение должно быть от 1 до 10')
         ),
     )
     pub_date = models.DateTimeField(
@@ -100,21 +101,22 @@ class Comment(models.Model):
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        verbose_name='отзыв',
+        verbose_name='Отзыв',
         related_name='comments',
     )
     text = models.CharField(
         'Текст комментария',
-        max_length=300
+        max_length=300,
+        help_text='Текст комментария'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='comments',
-        verbose_name='автор'
+        verbose_name='Автор'
     )
     pub_date = models.DateTimeField(
-        'дата публикации',
+        'Дата публикации',
         auto_now_add=True,
     )
 
