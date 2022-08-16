@@ -45,7 +45,7 @@ class Title(models.Model):
                                             verbose_name='Дата выпуска',
                                             help_text='Введите дату выпуска')
     description = models.TextField(
-        null=True, blank=True,verbose_name='Описание произведения',
+        null=True, blank=True, verbose_name='Описание произведения',
         help_text='Введите описание произведения')
     category = models.ForeignKey(Category,
                                  on_delete=models.SET_NULL,

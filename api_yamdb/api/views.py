@@ -108,7 +108,7 @@ class SignUp(APIView):
         serializer = SignUpSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        
+
             username = request.data.get('username')
             email = request.data.get('email')
             user = get_object_or_404(User, username=username, email=email)
@@ -117,7 +117,7 @@ class SignUp(APIView):
 
             user.password = confirmation_code
             user.confirmation_code = confirmation_code
-            
+
         send_mail(
             'Код подтверждения',
             confirmation_code,
