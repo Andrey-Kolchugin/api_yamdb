@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -28,7 +27,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields ='__all__'
+        fields = '__all__'
         read_only_fields = ['id']
 
 
@@ -44,7 +43,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields ='__all__'
+        fields = '__all__'
         model = Title
 
 
@@ -110,7 +109,9 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         if value == 'me':
-            raise serializers.ValidationError('Имя пользователя "me" использовать нельзя!')
+            raise serializers.ValidationError(
+                'Имя пользователя "me" использовать нельзя!'
+            )
         return value
 
 
@@ -134,7 +135,9 @@ class SafeUserSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         if value == 'me':
-            raise serializers.ValidationError('Имя пользователя "me" использовать нельзя!')
+            raise serializers.ValidationError(
+                'Имя пользователя "me" использовать нельзя!'
+            )
         return value
 
 

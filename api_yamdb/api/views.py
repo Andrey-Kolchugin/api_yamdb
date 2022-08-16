@@ -16,7 +16,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.filters import TitleFilter
 from reviews.models import Category, Genre, Review, Title
 from users.permissions import UserPermissions
-
 from .permissions import AuthorModerAdmin, IsAdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ObtainTokenSerializer,
@@ -180,4 +179,3 @@ class AdminUserViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-

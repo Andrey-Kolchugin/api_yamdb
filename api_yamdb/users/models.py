@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
-
 from .validators import username_value_not_me
 
 
@@ -43,7 +42,7 @@ class User(AbstractUser):
         blank=True
     )
     confirmation_code = models.CharField(
-        verbose_name='код подтверждения',
+        verbose_name='Код подтверждения',
         max_length=255,
         blank=False,
     )

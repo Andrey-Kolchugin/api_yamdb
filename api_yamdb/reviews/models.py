@@ -1,7 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth import get_user_model
 from django.db import models
-
 from .validators import year_validation
 
 User = get_user_model()
@@ -15,7 +14,7 @@ class Category(models.Model):
                             help_text='Уникальный URL категории.')
 
     class Meta:
-        verbose_name='Категория'
+        verbose_name = 'Категория'
         ordering = ('name',)
 
     def __str__(self):
@@ -30,7 +29,7 @@ class Genre(models.Model):
     slug = models.SlugField(unique=True)
 
     class Meta:
-        verbose_name='Жанр'
+        verbose_name = 'Жанр'
         ordering = ('name',)
 
     def __str__(self):
