@@ -1,3 +1,4 @@
+from django.db.models.aggregates import Avg
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -36,20 +37,20 @@ class CategoryViewSet(ListCreateDestroyMixin):
     serializer_class = CategorySerializer
     pagination_class = PageNumberPagination
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
     lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
-    ordering_fields = ('name',)
-    ordering = ('name',)
+    ordering_fields = ['name']
+    ordering = ['name']
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):
@@ -62,14 +63,14 @@ class GenreViewSet(ListCreateDestroyMixin):
     serializer_class = GenreSerializer
     pagination_class = PageNumberPagination
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
     lookup_field = 'slug'
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewsSerializer
-    permission_classes = [AuthorModerAdmin, ]
+    permission_classes = [AuthorModerAdmin]
 
     def get_queryset(self):
         review = get_object_or_404(Title, id=self.kwargs.get('title_id'))
