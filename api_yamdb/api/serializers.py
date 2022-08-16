@@ -1,9 +1,12 @@
+from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueValidator
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.models import User
+
+User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -104,9 +107,21 @@ class CommentSerializer(serializers.ModelSerializer):
 class SignUpSerializer(serializers.ModelSerializer):
     """Регистрация пользователя."""
 
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
     class Meta:
         model = User
-        fields = ('email', 'username')
+        fields = (
+            'username', 'email',
+            )
+        read_only_fields = ('role', )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError('Имя пользователя "me" использовать нельзя!')
+        return value
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -127,6 +142,11 @@ class SafeUserSerializer(serializers.ModelSerializer):
         model = User
         exclude = ('id', 'confirmation_code')
 
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError('Имя пользователя "me" использовать нельзя!')
+        return value
+
 
 class ObtainTokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField()
@@ -140,13 +160,13 @@ class ObtainTokenSerializer(serializers.ModelSerializer):
         confirmation_code = data.get('confirmation_code')
         if not username and not confirmation_code:
             raise serializers.ValidationError(
-                f"Fields are blank {username}, {confirmation_code}"
+                f'Fields are blank {username}, {confirmation_code}'
             )
         return data
 
     def validate_username(self, value):
         if not value:
             raise serializers.ValidationError(
-                "username can't be blank"
+                f'username not be blank'
             )
         return value

@@ -4,17 +4,17 @@ from django.db import models
 
 from .validators import username_value_not_me
 
-ADMIN = 'admin'
-MODERATOR = 'moderator'
-USER = 'user'
-ROLES = [
-    (ADMIN, 'admin'),
-    (MODERATOR, 'moderator'),
-    (USER, 'user'),
-]
-
 
 class User(AbstractUser):
+
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    USER = 'user'
+    ROLES = [
+        (ADMIN, 'admin'),
+        (MODERATOR, 'moderator'),
+        (USER, 'user'),
+    ]
 
     username_validator = UnicodeUsernameValidator()
 
@@ -28,7 +28,7 @@ class User(AbstractUser):
         unique=True,
         validators=[username_validator, username_value_not_me],
         error_messages={
-            "unique": "A user with that username already exists.",
+            'unique': 'A user with that username already exists.',
         },
     )
     role = models.CharField(
@@ -42,23 +42,11 @@ class User(AbstractUser):
         null=True,
         blank=True
     )
-    # confirmation_code = models.TextField(
-    #     verbose_name='confirmation code',
-    #     blank=True
-    # )
     confirmation_code = models.CharField(
         verbose_name='код подтверждения',
         max_length=255,
         blank=False,
     )
-
-    @property
-    def is_moderator(self):
-        return self.role == self.MODERATOR
-
-    @property
-    def is_admin(self):
-        return self.role == self.ADMIN
 
     class Meta:
         ordering = ['id']
