@@ -4,17 +4,18 @@ from django.db import models
 
 from .validators import username_value_not_me
 
-ADMIN = 'admin'
-MODERATOR = 'moderator'
-USER = 'user'
-ROLES = [
-    (ADMIN, 'admin'),
-    (MODERATOR, 'moderator'),
-    (USER, 'user'),
-]
-
 
 class User(AbstractUser):
+
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    USER = 'user'
+
+    ROLES = [
+        (ADMIN, 'admin'),
+        (MODERATOR, 'moderator'),
+        (USER, 'user'),
+    ]
 
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
@@ -48,15 +49,15 @@ class User(AbstractUser):
 
     @property
     def is_user(self):
-        return self.role == USER
+        return self.role == self.USER
 
     @property
     def is_admin(self):
-        return self.role == ADMIN
+        return self.role == self.ADMIN
 
     @property
     def is_moderator(self):
-        return self.role == MODERATOR
+        return self.role == self.MODERATOR
 
     class Meta:
         ordering = ['id']
