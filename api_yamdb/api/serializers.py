@@ -158,6 +158,6 @@ class ObtainTokenSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if not value:
             raise serializers.ValidationError(
-                f'username not be blank'
+                'username not be blank'
             )
         return value
