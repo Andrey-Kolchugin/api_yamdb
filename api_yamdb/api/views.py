@@ -108,7 +108,7 @@ class SignUp(APIView):
         serializer = SignUpSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        
+
             username = request.data.get('username')
             email = request.data.get('email')
             user = get_object_or_404(User, username=username, email=email)
@@ -117,7 +117,6 @@ class SignUp(APIView):
 
             user.password = confirmation_code
             user.confirmation_code = confirmation_code
-            
         send_mail(
             'Код подтверждения',
             confirmation_code,
@@ -176,7 +175,6 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         user = get_object_or_404(User, username=request.user.username)
         serializer = SafeUserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)

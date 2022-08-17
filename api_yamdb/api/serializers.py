@@ -114,13 +114,13 @@ class SignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'email',
-            )
+            'username', 'email',)
         read_only_fields = ('role', )
 
     def validate_username(self, value):
         if value == 'me':
-            raise serializers.ValidationError('Имя пользователя "me" использовать нельзя!')
+            raise serializers.ValidationError(
+                'Имя пользователя "me" использовать нельзя!')
         return value
 
 
@@ -144,7 +144,8 @@ class SafeUserSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         if value == 'me':
-            raise serializers.ValidationError('Имя пользователя "me" использовать нельзя!')
+            raise serializers.ValidationError(
+                'Имя пользователя "me" использовать нельзя!')
         return value
 
 
@@ -167,6 +168,6 @@ class ObtainTokenSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if not value:
             raise serializers.ValidationError(
-                f'username not be blank'
+                'username not be blank'
             )
         return value
