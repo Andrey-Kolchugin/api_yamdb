@@ -13,6 +13,7 @@ ROLES = [
     (USER, 'user'),
 ]
 
+
 class User(AbstractUser):
 
     email = models.EmailField(
@@ -44,7 +45,7 @@ class User(AbstractUser):
         max_length=255,
         blank=False,
     )
-    
+
     @property
     def is_user(self):
         return self.role == USER
