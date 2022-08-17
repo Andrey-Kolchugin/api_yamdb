@@ -3,6 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models.aggregates import Avg
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -118,7 +119,6 @@ class SignUp(APIView):
 
             user.password = confirmation_code
             user.confirmation_code = confirmation_code
-
         send_mail(
             'Код подтверждения',
             confirmation_code,
@@ -177,6 +177,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         user = get_object_or_404(User, username=request.user.username)
         serializer = SafeUserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

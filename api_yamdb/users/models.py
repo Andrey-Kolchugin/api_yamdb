@@ -10,13 +10,12 @@ class User(AbstractUser):
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     USER = 'user'
+
     ROLES = [
         (ADMIN, 'admin'),
         (MODERATOR, 'moderator'),
         (USER, 'user'),
     ]
-
-    username_validator = UnicodeUsernameValidator()
 
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
@@ -26,7 +25,7 @@ class User(AbstractUser):
         verbose_name='Имя пользователя',
         max_length=150,
         unique=True,
-        validators=[username_validator, username_value_not_me],
+        validators=[UnicodeUsernameValidator, username_value_not_me],
         error_messages={
             'unique': 'A user with that username already exists.',
         },
@@ -47,6 +46,18 @@ class User(AbstractUser):
         max_length=255,
         blank=False,
     )
+
+    @property
+    def is_user(self):
+        return self.role == self.USER
+
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
 
     class Meta:
         ordering = ['id']

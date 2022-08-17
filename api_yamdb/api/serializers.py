@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -67,14 +68,15 @@ class ReviewsSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        title = get_object_or_404(
-            Title,
-            id=self.context.get('view').kwargs.get('title_id'))
-        if self.context['request'].method == 'POST':
-            if Review.objects.filter(
-                    title=title,
-                    author=self.context['request'].user).exists():
-                raise ValidationError('Возможно оставить только один отзыв')
+        request = self.context['request']
+        author = request.user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        if (
+                request.method == 'POST'
+                and Review.objects.filter(title=title, author=author).exists()
+        ):
+            raise ValidationError('Возможно оставить только один отзыв')
         return data
 
 
@@ -103,15 +105,13 @@ class SignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'email',
-        )
+            'username', 'email',)
         read_only_fields = ('role', )
 
     def validate_username(self, value):
         if value == 'me':
             raise serializers.ValidationError(
-                'Имя пользователя "me" использовать нельзя!'
-            )
+                'Имя пользователя "me" использовать нельзя!')
         return value
 
 
@@ -136,8 +136,7 @@ class SafeUserSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if value == 'me':
             raise serializers.ValidationError(
-                'Имя пользователя "me" использовать нельзя!'
-            )
+                'Имя пользователя "me" использовать нельзя!')
         return value
 
 
@@ -160,6 +159,6 @@ class ObtainTokenSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if not value:
             raise serializers.ValidationError(
-                'username not be blank'
+                f'username not be blank'
             )
         return value
