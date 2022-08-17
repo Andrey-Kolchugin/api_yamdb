@@ -1,40 +1,34 @@
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator
-from rest_framework.serializers import CurrentUserDefault
-from django.db.models import Avg
-from reviews.models import Category, Genre, Title, User, Comment, Review
-from users.models import User
+from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueValidator
+from reviews.models import Category, Comment, Genre, Review, Title
+
+User = get_user_model()
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        exclude = ['id']
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        exclude = ['id']
 
 
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True, required=False)
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'description',
-                  'genre', 'category', 'rating')
-        read_only_fields = ('id',)
-
-    def get_rating(self, obj):
-        try:
-            rating = obj.reviews.aggregate(Avg('score'))
-            return rating.get('score__avg')
-        except TypeError:
-            return None
+        fields = '__all__'
+        read_only_fields = ['id']
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
@@ -49,8 +43,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description',
-                  'genre', 'category', 'rating')
+        fields = '__all__'
         model = Title
 
 
@@ -68,8 +61,33 @@ class ReviewsSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
 
+    def validate_score(self, value):
+        if 0 > value > 10:
+            raise ValidationError('Оценка от 1 до 10')
+        return value
+
+    def validate(self, data):
+        request = self.context['request']
+        author = request.user
+        title = get_object_or_404(
+            Title,
+            id=self.context.get('view').kwargs.get('title_id'))
+        if request.method == 'POST':
+            if Review.objects.filter(title=title, author=author).exists():
+                raise ValidationError('Возможно оставить только один отзыв')
+        return data
+
 
 class CommentSerializer(serializers.ModelSerializer):
+    review = serializers.SlugRelatedField(
+        slug_field='text',
+        read_only=True
+    )
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+
     class Meta:
         model = Comment
         fields = '__all__'
@@ -78,9 +96,23 @@ class CommentSerializer(serializers.ModelSerializer):
 class SignUpSerializer(serializers.ModelSerializer):
     """Регистрация пользователя."""
 
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
     class Meta:
         model = User
-        fields = ('email', 'username')
+        fields = (
+            'username', 'email',
+        )
+        read_only_fields = ('role', )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Имя пользователя "me" использовать нельзя!'
+            )
+        return value
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -101,6 +133,13 @@ class SafeUserSerializer(serializers.ModelSerializer):
         model = User
         exclude = ('id', 'confirmation_code')
 
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Имя пользователя "me" использовать нельзя!'
+            )
+        return value
+
 
 class ObtainTokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField()
@@ -114,14 +153,13 @@ class ObtainTokenSerializer(serializers.ModelSerializer):
         confirmation_code = data.get('confirmation_code')
         if not username and not confirmation_code:
             raise serializers.ValidationError(
-                f"Fields are blank {username}, {confirmation_code}"
+                f'Fields are blank {username}, {confirmation_code}'
             )
         return data
 
     def validate_username(self, value):
         if not value:
             raise serializers.ValidationError(
-                "username can't be blank"
+                'username not be blank'
             )
         return value
-
