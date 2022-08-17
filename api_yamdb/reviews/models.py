@@ -1,6 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth import get_user_model
 from django.db import models
+
 from .validators import year_validation
 
 User = get_user_model()
@@ -38,21 +39,21 @@ class Genre(models.Model):
 
 class Title(models.Model):
     id = models.AutoField(primary_key=True, editable=False)
-    name = models.CharField(
-        max_length=256, db_index=True, verbose_name='Название произведения',
-        help_text='Введите название произведения')
+    name = models.CharField(max_length=256, db_index=True,
+                            verbose_name='Название произведения',
+                            help_text='Введите название произведения')
     year = models.PositiveSmallIntegerField(validators=[year_validation],
                                             verbose_name='Дата выпуска',
                                             help_text='Введите дату выпуска')
-    description = models.TextField(
-        null=True, blank=True, verbose_name='Описание произведения',
-        help_text='Введите описание произведения')
+    description = models.TextField(null=True, blank=True,
+                                   verbose_name='Описание произведения',
+                                   help_text='Введите описание произведения')
     category = models.ForeignKey(Category,
                                  on_delete=models.SET_NULL,
-                                 related_name="titles", blank=True, null=True,
+                                 related_name='titles', blank=True, null=True,
                                  verbose_name='Категория')
     genre = models.ManyToManyField(Genre,
-                                   related_name="titles", blank=True,
+                                   related_name='titles', blank=True,
                                    verbose_name='Жанр')
 
     class Meta:
